@@ -1,5 +1,6 @@
 import json
 import requests
+import os
 
 stanwell_id = 3250
 
@@ -22,10 +23,17 @@ if __name__ == "__main__":
             print("EXITING...")
             exit(0)
 
-    ww_wind_ep = f"https://api.willyweather.com.au/v2/{api_key}/locations/{stanwell_id}/weather.json"
+    data_st = os.stat("./.data")
 
-    response = requests.get(ww_wind_ep, headers=ww_wind_rq_header)
+    print(data_st.st_mtime)
 
-    response.raise_for_status()
+    with open(".data") as data:
+        pass
 
-    print(response.json())
+    # ww_wind_ep = f"https://api.willyweather.com.au/v2/{api_key}/locations/{stanwell_id}/weather.json"
+    #
+    # response = requests.get(ww_wind_ep, headers=ww_wind_rq_header)
+    #
+    # response.raise_for_status()
+    #
+    # print(response.json())
