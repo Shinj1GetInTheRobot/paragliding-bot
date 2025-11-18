@@ -1,3 +1,4 @@
 auth.txt
 .idea
-.data
+.log
+__pychache__
