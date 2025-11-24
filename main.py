@@ -5,6 +5,30 @@ import time
 import bot
 
 LOG_MAX_UPDATES = 5
+DAYS_AHEAD = 5
+LOCATION = {
+    "id": 3250,
+    "name": "Stanwell Park"
+}
+
+def main():
+    log_file_path = "./.log"
+    auth_file_path = "./auth.txt"
+
+    api_key = read_api_key(auth_file_path)
+
+    t_last_checked = get_log_last_atime(log_file_path)
+    t_now = time.localtime(time.time())
+    if less_than_24_hrs(t_now, t_last_checked):
+        print_then_exit("Already checked today", 1)
+
+    log_contents = read_log(log_file_path)
+    update_str = new_update(t_now, api_key)
+    log_contents.append(update_str)
+    if len(log_contents) > LOG_MAX_UPDATES:
+        log_contents = log_contents[-LOG_MAX_UPDATES:]
+
+    overwrite_log(log_file_path, log_contents)
 
 def less_than_24_hrs(t1, t2):
     return False # bypass
@@ -36,12 +60,12 @@ def read_log(log_file_path):
             log_contents.append(line)
     return log_contents
 
-def new_update():
+def new_update(t_now, api_key):
     update_str = f"Checked on {time.asctime(t_now)}"
     try:
-        bot.try_check_conditions()
-    except:
-        update_str += " (FAILED)\n"
+        bot.try_check_conditions(api_key, LOCATION["id"], LOCATION["name"], DAYS_AHEAD)
+    except Exception as e:
+        update_str += f" (FAILED) ({e})\n"
     else:
         update_str += " (SUCCESS)\n"
     return update_str
@@ -52,21 +76,5 @@ def overwrite_log(log_file_path, log_contents):
             log.write(line)
 
 if __name__ == "__main__":
-    log_file_path = "./.log"
-    auth_file_path = "./auth.txt"
-
-    api_key = read_api_key(auth_file_path)
-
-    t_last_checked = get_log_last_atime(log_file_path)
-    t_now = time.localtime(time.time())
-    if less_than_24_hrs(t_now, t_last_checked):
-        print_then_exit("Already checked today", 1)
-
-    log_contents = read_log(log_file_path)
-    update_str = new_update()
-    log_contents.append(update_str)
-    if len(log_contents) > LOG_MAX_UPDATES:
-        log_contents = log_contents[-LOG_MAX_UPDATES:]
-
-    overwrite_log(log_file_path, log_contents)
+    main()
 
