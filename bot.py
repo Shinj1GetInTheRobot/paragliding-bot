@@ -31,7 +31,6 @@ def try_check_conditions(api_key, location_id, location_name, days):
         "Content-Type": "application/json",
         "x-payload": json.dumps(wind_payload)
     }
-
     ww_wind_ep = f"https://api.willyweather.com.au/v2/{api_key}/locations/{location_id}/weather.json"
 
     response = requests.get(ww_wind_ep, headers=ww_wind_rq_header)
@@ -46,14 +45,15 @@ def try_check_conditions(api_key, location_id, location_name, days):
     if len(weekly_forecast) != days:
         raise Exception(f"Received forecast data for {len(weekly_forecast)} days, not {days}?")
 
-    for daily_forecast in weekly_forecast:
-        if check_day(daily_forecast['entries']):
-            # TO DO: Load the good days into an email and send?
-            print(f"day {daily_forecast['dateTime']} looks good!")
-        else:
-            print(f"day {daily_forecast['dateTime']} looks bad.")
+    # for daily_forecast in weekly_forecast:
+    #     if check_day(daily_forecast['entries']):
+    #         # TO DO: Load the good days into an email and send?
+    #         print(f"day {daily_forecast['dateTime']} looks good!")
+    #     else:
+    #         print(f"day {daily_forecast['dateTime']} looks bad.")
 
-    return
+    days = [day['dateTime'][:-9] for day in weekly_forecast if check_day(day['entries'])]
+    return days
 
 def check_day(day_forecast):
     consecutive_preds = 0
