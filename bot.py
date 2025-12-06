@@ -2,29 +2,27 @@ import json
 import requests
 import time
 
-MIN_CONSECUTIVE_PREDICTIONS = 4
+MIN_CONSECUTIVE_PREDICTIONS = 3
 KMH_TO_KNOTS_CONV = 0.539957
-DIR_RANGE = {   #compass bearing
-    "min": 45,
-    "max": 210
+DIR_RANGE = {   #compass bearing in degrees
+    "min": 75,
+    "max": 180
 }
 SPEED_RANGE = { #knots
-    "min": 3,
-    "max": 15
+    "min": 5,
+    "max": 12
 }
 HOUR_RANGE = {  # 24hr time
     "min": 8,
     "max": 20
 }
 
-# TO DO!
-# return nothing on success, raise error on failure
-def try_check_conditions(api_key, location_id, location_name, days):
+def try_check_conditions(api_key, location_id, location_name, num_days):
     date = time.strftime("%Y-%m-%d", time.localtime(time.time()))
 
     wind_payload = {
         "forecasts": ["wind"],
-        "days": days,
+        "days": num_days,
         "startDate": date,
     }
     ww_wind_rq_header = {
@@ -35,22 +33,13 @@ def try_check_conditions(api_key, location_id, location_name, days):
 
     response = requests.get(ww_wind_ep, headers=ww_wind_rq_header)
     response.raise_for_status()
-
     data = response.json()
-
     if data['location']['name'] != location_name:
         raise Exception(f"{location_name} different location to {data['location']['name']}?")
 
     weekly_forecast = data['forecasts']['wind']['days']
-    if len(weekly_forecast) != days:
-        raise Exception(f"Received forecast data for {len(weekly_forecast)} days, not {days}?")
-
-    # for daily_forecast in weekly_forecast:
-    #     if check_day(daily_forecast['entries']):
-    #         # TO DO: Load the good days into an email and send?
-    #         print(f"day {daily_forecast['dateTime']} looks good!")
-    #     else:
-    #         print(f"day {daily_forecast['dateTime']} looks bad.")
+    if len(weekly_forecast) != num_days:
+        raise Exception(f"Received forecast data for {len(weekly_forecast)} days, not {num_days}?")
 
     days = [day['dateTime'][:-9] for day in weekly_forecast if check_day(day['entries'])]
     return days

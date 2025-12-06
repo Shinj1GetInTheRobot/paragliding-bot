@@ -19,16 +19,12 @@ def send(sender, receiver, subject, body):
   try:
       service = build("gmail", "v1", credentials=creds)
       message = EmailMessage()
-
       message.set_content(body)
-
       message["To"] = receiver
       message["From"] = sender
       message["Subject"] = subject
 
-      # encoded message
       encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
-
       create_message = {"raw": encoded_message}
       send_message = (
           service.users()

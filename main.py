@@ -1,5 +1,4 @@
 import json
-import requests
 import os
 import time
 
@@ -7,16 +6,17 @@ import bot
 import mail
 
 LOG_FILE_PATH = "./.log"
-CONFIG_FILE_PATH = "config.json"
+CONFIG_FILE_PATH = "./config.json"
 
 LOG_MAX_UPDATES = 5
 DAYS_AHEAD = 5
 LOCATION = {
-    "id": 3250,
-    "name": "Stanwell Park"
+    "id": 3144,
+    "name": "Bellambi"
 }
 
 def main():
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     config = read_config()
 
     t_last_checked = get_log_last_atime()
@@ -29,17 +29,24 @@ def main():
     log_contents.append(update_str)
     if len(log_contents) > LOG_MAX_UPDATES:
         log_contents = log_contents[-LOG_MAX_UPDATES:]
-
     overwrite_log(log_contents)
-    msg = days_to_msg(days)
-    subject = ""
-    if (len(days) == 1): subject = f"{len(days)} Paragliding Day This Week"
-    else: subject = f"{len(days)} Paragliding Days This Week"
+
+    try:
+        msg = days_to_msg(days)
+        if len(days) == 1:
+            subject = f"{len(days)} Paragliding Day This Week"
+        else:
+            subject = f"{len(days)} Paragliding Days This Week"
+    except Exception as e:
+        subject = "Paragliding Bot Failed?"
+        msg = "Is willy weather down?"
     mail.send(config["bot_email"], config["user_email"], subject, msg)
 
 def days_to_msg(days):
-    if len(days) == 0: return "fucking shit"
-    return '\n'.join([f"{day} looks good!" for day in days])
+    msg = "fucking shit"
+    if len(days) != 0: msg = '\n'.join([f"{day} looks good!" for day in days])
+    msg += f"\n\n   @WillyWeather/{LOCATION["name"]}"
+    return msg
 
 def read_config():
     config = None
@@ -58,7 +65,6 @@ def read_config():
     return config
 
 def less_than_24_hrs(t1, t2):
-    return False # bypass
     return t1.tm_year - t2.tm_year == 0 and t1.tm_yday - t2.tm_yday == 0
 
 def print_then_exit(msg, exit_code):
